@@ -116,7 +116,7 @@ export class ProductService {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    const previousState = { ...product }; // store the old state
+    const previousState = { ...product };
 
     Object.assign(product, updateDto);
     product.updated_by = user.userId;

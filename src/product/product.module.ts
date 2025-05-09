@@ -9,6 +9,7 @@ import { ProductVariantService } from './product_variant.service';
 import { ProductImageService } from './product_image.service';
 import { ProductLog } from '../log/entities/product_logs.entity';
 import { LogModule } from 'src/log/log.module';
+import { ProductImageLog } from 'src/log/entities/product_image_logs.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LogModule } from 'src/log/log.module';
       ProductLog,
       ProductImage,
       ProductVariant,
+      ProductImageLog,
     ]),
     LogModule,
   ],

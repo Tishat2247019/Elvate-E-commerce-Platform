@@ -64,8 +64,8 @@ export class ProductController {
     // return 'check get';
   }
 
-  @UseGuards(JwtWithBlacklistGuard)
-  // @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(JwtWithBlacklistGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   async createProduct(@Request() req, @Body() body: CreateProductDto) {
     if (req.user.role !== 'admin') {
@@ -337,10 +337,13 @@ export class ProductController {
 
       // Save image even if caption fails
       const image_url = `/uploads/images/${file.filename}`;
-      return this.productImageService.createProductImage({
-        ...body,
-        image_url, // Will be empty if API failed
-      });
+      return this.productImageService.createProductImage(
+        {
+          ...body,
+          image_url,
+        },
+        req.user,
+      );
     } catch (error) {
       // Clean up the uploaded file if something went wrong
       if (fs.existsSync(filePath)) {
@@ -370,7 +373,11 @@ export class ProductController {
     if (req.user.role !== 'admin') {
       throw new ForbiddenException('Only admin can update product images');
     }
-    return await this.productImageService.updateProductImage(id, body);
+    return await this.productImageService.updateProductImage(
+      id,
+      body,
+      req.user,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -379,7 +386,7 @@ export class ProductController {
     if (req.user.role !== 'admin') {
       throw new ForbiddenException('Only admin can delete product images');
     }
-    return await this.productImageService.removeProductImage(id);
+    return await this.productImageService.removeProductImage(id, req.user);
   }
 
   @UseGuards(AuthGuard('jwt'))

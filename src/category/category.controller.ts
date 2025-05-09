@@ -14,6 +14,7 @@ import { CreateCategoryDto } from './dto/create_category.dto';
 import { Category } from './entities/category.entity';
 import { UpdateCategoryDto } from './dto/update_category.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { JwtWithBlacklistGuard } from 'src/auth/CustomGuard/jwt_blacklist.guard';
 
 @Controller('category')
 export class CategoryController {
@@ -41,17 +42,14 @@ export class CategoryController {
     return this.categoryService.getCategoryById(id);
   }
 
+  @UseGuards(JwtWithBlacklistGuard)
   @Put(':id')
   async updateCategory(
+    @Request() req,
     @Param('id') id: number,
     @Body() updateCategoryDto: UpdateCategoryDto,
-    @Body('updatedBy') updatedBy: number,
   ) {
-    return this.categoryService.updateCategory(
-      id,
-      updateCategoryDto,
-      updatedBy,
-    );
+    return this.categoryService.updateCategory(id, updateCategoryDto, req.user);
   }
 
   @Delete(':id')

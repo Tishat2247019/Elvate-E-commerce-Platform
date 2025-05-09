@@ -37,17 +37,22 @@ export class CategoryService {
   async updateCategory(
     id: number,
     updateCategoryDto: UpdateCategoryDto,
-    updatedBy: number,
-  ): Promise<Category> {
+    user: any,
+  ): Promise<{ message: String; category: Category }> {
     const category = await this.categoryRepository.findOne({ where: { id } });
 
     if (!category) {
       throw new NotFoundException(`Category with ID ${id} not found`);
     }
 
-    Object.assign(category, updateCategoryDto, { updated_by: updatedBy });
+    Object.assign(category, updateCategoryDto);
+    category.updated_by = user.userId;
 
-    return this.categoryRepository.save(category);
+    const updatedCategory = await this.categoryRepository.save(category);
+    return {
+      message: `Category with ID ${id} successfully updated`,
+      category: updatedCategory,
+    };
   }
 
   async deleteCategory(id: number): Promise<{ message: string }> {

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 import { ProductVariant } from './product_variant.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class ProductImage {
@@ -38,8 +39,15 @@ export class ProductImage {
   @Column({ default: false })
   is_main: boolean;
 
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'created_by' })
+  createdBy: User;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
+
+  @Column({ nullable: true })
+  updated_by: number;
 
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;

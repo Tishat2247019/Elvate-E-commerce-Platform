@@ -11,10 +11,11 @@ import { UserModule } from 'src/user/user.module';
 import { RefreshToken } from './entities/refresh_token.entity';
 import { BlacklistToken } from './entities/blackList_token.entity';
 import { JwtWithBlacklistGuard } from './CustomGuard/jwt_blacklist.guard';
+import { UserLog } from 'src/log/entities/user_logs.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RefreshToken, BlacklistToken]),
+    TypeOrmModule.forFeature([RefreshToken, BlacklistToken, UserLog]),
     PassportModule,
     UserModule,
     JwtModule.registerAsync({

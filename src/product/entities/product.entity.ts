@@ -5,6 +5,8 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  Timestamp,
+  UpdateDateColumn,
 } from 'typeorm';
 import { ProductVariant } from './product_variant.entity';
 import { ProductImage } from './product_image.entity';
@@ -43,8 +45,24 @@ export class Product {
   @JoinColumn({ name: 'created_by' })
   createdBy: User;
 
+  // @Column()
+  // created_at: Timestamp;
+  @Column({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  created_at: Date;
+
   @Column({ nullable: true })
   updated_by: number;
+
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
+  })
+  updated_at: Date;
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];

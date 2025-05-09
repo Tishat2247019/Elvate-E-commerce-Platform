@@ -16,6 +16,7 @@ import { RequestOtpDto } from 'src/user/dto/request_otp.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { RefreshToken } from './entities/refresh_token.entity';
 import { BlacklistToken } from './entities/blackList_token.entity';
+import { UserLog } from 'src/log/entities/user_logs.entity';
 
 @Injectable()
 export class AuthService {
@@ -31,6 +32,8 @@ export class AuthService {
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(BlacklistToken)
     private readonly blackListTokenRepository: Repository<BlacklistToken>,
+    @InjectRepository(UserLog)
+    private readonly UserLogRepository: Repository<UserLog>,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -61,7 +64,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: any, ip: string, userAgent: string) {
     const payload = { username: user.email, sub: user.id, role: user.role };
     const access_token = this.jwtService.sign(payload);
     const refresh_token = this.jwtService.sign(payload, {
@@ -69,25 +72,59 @@ export class AuthService {
       secret: process.env.JWT_REFRESH_SECRET,
     });
 
+    // Log the successful login attempt
+    await this.UserLogRepository.save({
+      user: user, // The logged-in user
+      action: 'login',
+      ip_address: ip, // IP address of the user
+      user_agent: userAgent, // User-Agent of the request
+      success: true, // This is a successful login
+      jwt_id: payload.sub, // Optional, if using `jti`
+    });
+    // Update lastLogin
+    await this.userRepository.update(user.id, { lastLogin: new Date() });
+
     await this.refreshTokenRepository.save({
       userId: user.id,
       token: refresh_token,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      // revoked: false,
     });
 
     const decoded = this.jwtService.verify(access_token);
     return {
       access_token,
-      // refresh_token,
-      // user: {
-      //   id: user.id,
-      //   role: user.role,
-      // },
       id: decoded.sub,
       role: decoded.role,
     };
   }
+
+  // async login(user: any) {
+  //   const payload = { username: user.email, sub: user.id, role: user.role };
+  //   const access_token = this.jwtService.sign(payload);
+  //   const refresh_token = this.jwtService.sign(payload, {
+  //     expiresIn: '7d',
+  //     secret: process.env.JWT_REFRESH_SECRET,
+  //   });
+
+  //   await this.refreshTokenRepository.save({
+  //     userId: user.id,
+  //     token: refresh_token,
+  //     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+  //     // revoked: false,
+  //   });
+
+  //   const decoded = this.jwtService.verify(access_token);
+  //   return {
+  //     access_token,
+  //     // refresh_token,
+  //     // user: {
+  //     //   id: user.id,
+  //     //   role: user.role,
+  //     // },
+  //     id: decoded.sub,
+  //     role: decoded.role,
+  //   };
+  // }
 
   async isBlacklisted(token: string): Promise<boolean> {
     const entry = await this.blackListTokenRepository.findOne({
@@ -96,7 +133,12 @@ export class AuthService {
     return !!entry;
   }
 
-  async logout(userId: number, accessToken: string) {
+  async logout(
+    userId: number,
+    accessToken: string,
+    ip: string,
+    userAgent: string,
+  ) {
     const decoded = this.jwtService.decode(accessToken) as { exp: number };
     const expiresAt = new Date(decoded.exp * 1000);
 
@@ -106,7 +148,31 @@ export class AuthService {
       token: accessToken,
       expiresAt,
     });
+
+    // Log logout attempt
+    await this.UserLogRepository.save({
+      action: 'logout',
+      user: { id: userId }, // Just a reference to the user
+      ip_address: ip, // You can omit this or add it if needed
+      user_agent: userAgent, // Same as above
+      success: true,
+      jwt_id: undefined, // Store token ID if required
+    });
+
+    await this.userRepository.update(userId, { lastLogout: new Date() });
   }
+
+  // async logout(userId: number, accessToken: string) {
+  //   const decoded = this.jwtService.decode(accessToken) as { exp: number };
+  //   const expiresAt = new Date(decoded.exp * 1000);
+
+  //   await this.refreshTokenRepository.delete({ userId });
+
+  //   await this.blackListTokenRepository.save({
+  //     token: accessToken,
+  //     expiresAt,
+  //   });
+  // }
 
   // async requestOtp(dto: RequestOtpDto) {
   //   const existing = await this.userRepository.findOne({
