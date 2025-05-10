@@ -34,4 +34,5 @@ export class User {
 
   @OneToMany(() => UserLog, (log) => log.user)
   logs: UserLog[];
+  orders: any;
 }

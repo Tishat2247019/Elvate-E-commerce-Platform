@@ -15,6 +15,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 // import path, { join } from 'path';
 import { LogModule } from './log/log.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { OrderModule } from './order/order.module';
 import * as path from 'path';
 
 @Module({
@@ -53,6 +54,7 @@ import * as path from 'path';
     UserModule,
     LogModule,
     ChatbotModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
