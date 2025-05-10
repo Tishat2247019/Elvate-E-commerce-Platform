@@ -105,4 +105,9 @@ export class AuthController {
     await this.authService.logout(userId, accessToken, ip, userAgent);
     return { message: 'Logged out successfully' };
   }
+
+  @Post('refresh')
+  async refresh(@Body() body: { refresh_token: string }) {
+    return this.authService.refreshTokens(body.refresh_token);
+  }
 }

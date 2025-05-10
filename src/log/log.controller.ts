@@ -15,6 +15,7 @@ import { Repository } from 'typeorm';
 import { LogService } from './log.service';
 import { ProductLog } from './entities/product_logs.entity';
 import { ProductImageLog } from './entities/product_image_logs.entity';
+import { UserLog } from './entities/user_logs.entity';
 
 @Controller('logs')
 export class LogController {
@@ -24,7 +25,28 @@ export class LogController {
     private readonly productLogRepository: Repository<ProductLog>,
     @InjectRepository(ProductImageLog)
     private readonly productImageLogRepository: Repository<ProductImageLog>,
+    @InjectRepository(UserLog)
+    private readonly userLogRepository: Repository<UserLog>,
   ) {}
+
+  @Get('download/user-logs')
+  @UseGuards(AuthGuard('jwt'))
+  async downloadUserLogs(@Request() req, @Res() res: Response) {
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Only admin can download logs');
+    }
+
+    const logs = await this.userLogRepository.find({ relations: ['user'] });
+
+    const html = await this.logService.renderUserLogsHtml(logs, req.user);
+    const pdfBuffer = await this.logService.generatePdf(html);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=user-logs.pdf`,
+    });
+    res.send(pdfBuffer);
+  }
 
   @Get('download/:entity')
   @UseGuards(AuthGuard('jwt'))
