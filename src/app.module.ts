@@ -17,6 +17,7 @@ import { LogModule } from './log/log.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { OrderModule } from './order/order.module';
 import { CommonModule } from './common/common.module';
+import { AddressModule } from './address/address.module';
 import * as path from 'path';
 
 @Module({
@@ -39,7 +40,7 @@ import * as path from 'path';
         from: `"Elvate " <${process.env.MAIL_FROM}>`,
       },
       template: {
-        dir: path.join(__dirname, '..', 'templates'),
+        dir: path.join(process.cwd(), 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
@@ -57,6 +58,7 @@ import * as path from 'path';
     ChatbotModule,
     OrderModule,
     CommonModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],

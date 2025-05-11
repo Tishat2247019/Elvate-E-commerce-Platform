@@ -17,6 +17,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { RefreshToken } from './entities/refresh_token.entity';
 import { BlacklistToken } from './entities/blackList_token.entity';
 import { UserLog } from 'src/log/entities/user_logs.entity';
+import { PasswordReset } from 'src/user/entities/password_reset.entity';
+import { VerifyResetOtpDto } from 'src/user/dto/varify_reset_pass.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,6 +36,8 @@ export class AuthService {
     private readonly blackListTokenRepository: Repository<BlacklistToken>,
     @InjectRepository(UserLog)
     private readonly UserLogRepository: Repository<UserLog>,
+    @InjectRepository(PasswordReset)
+    private readonly passwordResetRepo: Repository<PasswordReset>,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -339,5 +343,75 @@ export class AuthService {
     } catch (err) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
+  }
+
+  async requestPasswordReset(ip: string, userAgent: string, email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new UnauthorizedException('No user found with this email');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    await this.passwordResetRepo.save({ email, otp, expiresAt });
+
+    const otpDigits = otp.split('');
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Password Reset OTP',
+      template: 'otp',
+      context: {
+        name: email.split('@')[0],
+        otpDigits,
+      },
+    });
+
+    await this.UserLogRepository.save({
+      user: user, // The logged-in user
+      action: 'forgot_password',
+      ip_address: ip, // IP address of the user
+      user_agent: userAgent, // User-Agent of the request
+      success: true, // This is a successful login
+      jwt_id: undefined, // Optional, if using `jti`
+    });
+
+    return { message: 'OTP sent to your email' };
+  }
+
+  async verifyResetOtp(
+    ip: string,
+    userAgent: string,
+    email: string,
+    dto: VerifyResetOtpDto,
+  ) {
+    const reset = await this.passwordResetRepo.findOne({
+      where: { email, otp: dto.otp },
+    });
+
+    if (!reset || reset.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    user.password = dto.newPassword;
+    await this.userRepository.save(user);
+
+    await this.passwordResetRepo.delete({ email }); // Clean up OTP
+
+    await this.UserLogRepository.save({
+      user: user, // The logged-in user
+      action: 'reset_password',
+      ip_address: ip, // IP address of the user
+      user_agent: userAgent, // User-Agent of the request
+      success: true, // This is a successful login
+      jwt_id: undefined, // Optional, if using `jti`
+    });
+
+    return { message: 'Password reset successfully' };
   }
 }

@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-
+import { Address } from '../../address/entities/address.entity';
 @Entity()
 @Unique(['email'])
 export class User {
@@ -35,4 +35,7 @@ export class User {
   @OneToMany(() => UserLog, (log) => log.user)
   logs: UserLog[];
   orders: any;
+
+  @OneToMany(() => Address, (address) => address.user, { cascade: true })
+  addresses: Address[];
 }

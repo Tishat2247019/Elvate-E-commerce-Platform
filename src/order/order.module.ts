@@ -9,6 +9,7 @@ import { OrderStatusHistory } from './entities/order_status_history.entity';
 import { UserCart } from 'src/cart/entities/user_cart.entity';
 import { ProductVariant } from 'src/product/entities/product_variant.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Address } from 'src/address/entities/address.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { User } from 'src/user/entities/user.entity';
       UserCart,
       ProductVariant,
       User,
+      Address,
     ]),
   ],
   controllers: [OrderController],

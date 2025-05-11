@@ -16,7 +16,13 @@ export class UserLog {
   user: User;
 
   @Column()
-  action: 'login' | 'logout' | 'failed_login' | 'refresh_token';
+  action:
+    | 'login'
+    | 'logout'
+    | 'failed_login'
+    | 'refresh_token'
+    | 'reset_password'
+    | 'forgot_password';
 
   @Column({ nullable: true })
   ip_address: string;

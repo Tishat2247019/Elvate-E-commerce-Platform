@@ -16,6 +16,7 @@ import { NoJwtBlacklistGuard } from './custom_decoretors/no_jwt_blacklist.decora
 import { UserLog } from 'src/log/entities/user_logs.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UnorderedBulkOperation } from 'typeorm';
+import { VerifyResetOtpDto } from 'src/user/dto/varify_reset_pass.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -109,5 +110,25 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body() body: { refresh_token: string }) {
     return this.authService.refreshTokens(body.refresh_token);
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
+  @Post('forgot-password')
+  requestPasswordReset(@Request() req) {
+    const email = req.user.email;
+    // console.log('Decoded user from JWT:', email);
+    const ip = req.connection.remoteAddress; // IP address of the user
+    const userAgent = req.headers['user-agent'];
+    return this.authService.requestPasswordReset(ip, userAgent, email);
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  @Post('reset-password')
+  verifyResetOtp(@Request() req, @Body() dto: VerifyResetOtpDto) {
+    const ip = req.connection.remoteAddress; // IP address of the user
+    const userAgent = req.headers['user-agent'];
+    const email = req.user.email;
+    return this.authService.verifyResetOtp(ip, userAgent, email, dto);
   }
 }

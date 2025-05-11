@@ -29,6 +29,7 @@ import { join } from 'path';
 import puppeteer from 'puppeteer';
 import * as ejs from 'ejs';
 import { supabase } from 'src/common/supabase.service';
+import { Address } from 'src/address/entities/address.entity';
 
 @Injectable()
 export class OrderService {
@@ -51,6 +52,8 @@ export class OrderService {
     private productVariantRepository: Repository<ProductVariant>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Address)
+    private addressRepository: Repository<Address>,
   ) {}
 
   // 🟢 Create new order
@@ -288,20 +291,31 @@ export class OrderService {
       throw new ForbiddenException('Your cart is empty.');
     }
 
+    const userAddress = await this.addressRepository.find({
+      where: { user: { id: user.userId } },
+    });
+
+    // console.log(userAddess);
+    if (!userAddress.length) {
+      throw new ForbiddenException('No shipping address found for user.');
+    }
+
     let totalAmount = 0;
+
+    const shipping = userAddress[0];
 
     const order = this.orderRepo.create({
       user: { id: user.userId },
       totalAmount: 0,
       status: OrderStatus.PENDING,
       shippingAddress: {
-        fullName: 'asdf',
-        street: 'asdf',
-        city: 'asdf',
-        state: 'asdf',
-        postalCode: 'asdf',
-        country: 'asdf',
-        phoneNumber: 'phone',
+        fullName: shipping.fullName,
+        street: shipping.street,
+        city: shipping.city,
+        state: shipping.state,
+        postalCode: shipping.postalCode,
+        country: shipping.country,
+        phoneNumber: shipping.phoneNumber,
       },
     });
 
@@ -366,18 +380,31 @@ export class OrderService {
       ],
     });
 
+    const shipping = order.shippingAddress;
+    const shippingHtml = `
+  <h3>Shipping Address</h3>
+  <div style="border:1px solid #ccc; padding:10px; margin-bottom:20px;">
+    <p><strong>${shipping.fullName}</strong></p>
+    <p>${shipping.street}</p>
+    <p>${shipping.city}, ${shipping.state} - ${shipping.postalCode}</p>
+    <p>${shipping.country}</p>
+    <p>Phone: ${shipping.phoneNumber}</p>
+  </div>
+`;
+
     const invoiceTable = await this.buildInvoiceTable(items, order.totalAmount);
 
     await this.mailerService.sendMail({
       to: user.email,
       subject: `Your Order Invoice (#${order.id})`,
       html: `
-      <h2>Thank you for your order!</h2>
-      <p>Here is your invoice:</p>
-      ${invoiceTable}
-      <p><a href="${invoiceUrl}" target="_blank" style="padding:10px 15px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Download Invoice (PDF)</a></p>
-      <p>We appreciate your business.</p>
-    `,
+  <h2>Thank you for your order!</h2>
+  <p>Here is your invoice:</p>
+  ${invoiceTable}
+  ${shippingHtml}
+  <p><a href="${invoiceUrl}" target="_blank" style="padding:10px 15px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Download Invoice (PDF)</a></p>
+  <p>We appreciate your business.</p>
+`,
     });
   }
 
