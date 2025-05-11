@@ -31,6 +31,7 @@ import { extname } from 'path';
 import axios from 'axios';
 import * as fs from 'fs';
 import { JwtWithBlacklistGuard } from 'src/auth/CustomGuard/jwt_blacklist.guard';
+import { supabase } from 'src/common/supabase.service';
 // import Replicate from 'replicate';
 // import * as Replicate from 'replicate';
 const Replicate = require('replicate');
@@ -295,6 +296,68 @@ export class ProductController {
       }),
     }),
   )
+  // async uploadProductImage(
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Body() body: { product_id: number; variant_id: number; is_main: boolean },
+  //   @Request() req,
+  // ) {
+  //   if (req.user.role !== 'admin') {
+  //     throw new ForbiddenException('Only admin can upload product images');
+  //   }
+
+  //   const filePath = file.path;
+  //   const fileBuffer = fs.readFileSync(filePath);
+  //   const base64 = `data:image/${extname(file.originalname).replace('.', '')};base64,${fileBuffer.toString('base64')}`;
+
+  //   try {
+  //     // First try to get caption
+  //     let caption = '';
+  //     try {
+  //       const hfResponse = await axios.post(
+  //         'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
+  //         { inputs: base64 },
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`, // Always use env variables
+  //             'Content-Type': 'application/json',
+  //           },
+  //         },
+  //       );
+
+  //       if (hfResponse.data && Array.isArray(hfResponse.data)) {
+  //         caption = hfResponse.data[0]?.generated_text || '';
+  //       }
+  //     } catch (hfError) {
+  //       console.warn(
+  //         'Hugging Face captioning failed:',
+  //         hfError.response?.data || hfError.message,
+  //       );
+  //       // Fallback to empty caption if API fails
+  //       caption = '';
+  //     }
+
+  //     // Save image even if caption fails
+  //     const image_url = `/uploads/images/${file.filename}`;
+  //     return this.productImageService.createProductImage(
+  //       {
+  //         ...body,
+  //         image_url,
+  //       },
+  //       req.user,
+  //     );
+  //   } catch (error) {
+  //     // Clean up the uploaded file if something went wrong
+  //     if (fs.existsSync(filePath)) {
+  //       fs.unlinkSync(filePath);
+  //     }
+
+  //     console.error('Image upload failed:', error);
+  //     throw new HttpException(
+  //       'Failed to upload product image',
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
   async uploadProductImage(
     @UploadedFile() file: Express.Multer.File,
     @Body() body: { product_id: number; variant_id: number; is_main: boolean },
@@ -306,56 +369,69 @@ export class ProductController {
 
     const filePath = file.path;
     const fileBuffer = fs.readFileSync(filePath);
-    const base64 = `data:image/${extname(file.originalname).replace('.', '')};base64,${fileBuffer.toString('base64')}`;
+    const fileExt = extname(file.originalname);
+    const fileName = `product-${Date.now()}${fileExt}`;
+    const mimeType = file.mimetype;
 
+    // Optional: generate base64 for captioning
+    const base64 = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+
+    // Get image caption (optional)
+    let caption = '';
     try {
-      // First try to get caption
-      let caption = '';
-      try {
-        const hfResponse = await axios.post(
-          'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
-          { inputs: base64 },
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`, // Always use env variables
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-
-        if (hfResponse.data && Array.isArray(hfResponse.data)) {
-          caption = hfResponse.data[0]?.generated_text || '';
-        }
-      } catch (hfError) {
-        console.warn(
-          'Hugging Face captioning failed:',
-          hfError.response?.data || hfError.message,
-        );
-        // Fallback to empty caption if API fails
-        caption = '';
-      }
-
-      // Save image even if caption fails
-      const image_url = `/uploads/images/${file.filename}`;
-      return this.productImageService.createProductImage(
+      const hfResponse = await axios.post(
+        'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
+        { inputs: base64 },
         {
-          ...body,
-          image_url,
+          headers: {
+            Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
         },
-        req.user,
       );
-    } catch (error) {
-      // Clean up the uploaded file if something went wrong
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+      if (hfResponse.data && Array.isArray(hfResponse.data)) {
+        caption = hfResponse.data[0]?.generated_text || '';
       }
+    } catch (hfError) {
+      console.warn(
+        'Captioning failed:',
+        hfError.response?.data || hfError.message,
+      );
+    }
 
-      console.error('Image upload failed:', error);
+    // 🔥 Upload to Supabase
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, fileBuffer, {
+        contentType: mimeType,
+        upsert: true,
+      });
+
+    // Clean up local file
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    if (uploadError) {
+      console.error('Upload failed:', uploadError.message);
       throw new HttpException(
-        'Failed to upload product image',
+        'Supabase upload failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+
+    // 🔗 Get Public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(fileName);
+    const image_url = publicUrlData?.publicUrl;
+
+    // ✅ Save image URL in DB
+    return this.productImageService.createProductImage(
+      {
+        ...body,
+        image_url,
+      },
+      req.user,
+    );
   }
 
   @Get('image/:id')

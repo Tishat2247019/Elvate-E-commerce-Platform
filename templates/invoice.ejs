@@ -21,19 +21,29 @@
     <p>Customer: <%= order.user.name %> (<%= order.user.email %>)</p>
     <table cellpadding="0" cellspacing="0">
       <tr class="heading">
-        <td>Product</td>
-        <td>Quantity</td>
-        <td>Unit Price</td>
-        <td>Total</td>
-      </tr>
-      <% order.items.forEach(function(item) { %>
-        <tr class="item">
-          <td><%= item.productVariant.product.title %></td>
-          <td><%= item.quantity %></td>
-          <td><%= item.price%></td>
-          <td><%= (item.quantity * item.price) %></td>
-        </tr>
-      <% }); %>
+  <td>Product</td>
+  <td>Image</td>
+  <td>Quantity</td>
+  <td>Unit Price</td>
+  <td>Total</td>
+</tr>
+
+<% order.items.forEach(function(item) { %>
+  <tr class="item">
+    <td><%= item.productVariant.product.title %></td>
+    <td>
+      <% if (item.productVariant.images && item.productVariant.images.length > 0) { %>
+        <img src="<%= item.productVariant.images[0].image_url %>" alt="Product Image" style="width: 80px;" />
+      <% } else { %>
+        No Image
+      <% } %>
+    </td>
+    <td><%= item.quantity %></td>
+    <td>$<%= Number(item.price).toFixed(2) %></td>
+    <td>$<%= (item.quantity * item.price).toFixed(2) %></td>
+  </tr>
+<% }); %>
+
       <tr class="total">
         <td></td>
         <td></td>
