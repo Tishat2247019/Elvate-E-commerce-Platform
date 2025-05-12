@@ -25,7 +25,7 @@ export class AddressService {
   ): Promise<{ Address; message: string }> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      select: ['id'], // Only fetch the user id
+      select: ['id'],
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -73,19 +73,19 @@ export class AddressService {
   async getAddressesByUser(userId: number): Promise<Address[] | null> {
     return await this.addressRepository.find({
       where: { user: { id: userId } },
+      // relations: ['user'],
+      // select: ['user'],
     });
   }
   async deleteAddress(
     userId: number,
     addressId: number,
   ): Promise<{ message: string }> {
-    // Find the address for the user
     const address = await this.addressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['user'], // Check both userId and addressId
     });
 
-    // Check if the address exists and belongs to the requesting user
     if (!address) {
       throw new NotFoundException(
         `Address with ID ${addressId} not found for user ${userId}`,

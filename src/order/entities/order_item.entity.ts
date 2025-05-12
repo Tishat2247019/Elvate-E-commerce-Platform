@@ -11,8 +11,8 @@ export class OrderItem {
   @ManyToOne(() => Order, (order) => order.items)
   order: Order;
 
-  @ManyToOne(() => ProductVariant) // Link to ProductVariant, not Product
-  productVariant: ProductVariant; // Field name updated to `productVariant`
+  @ManyToOne(() => ProductVariant)
+  productVariant: ProductVariant;
 
   @Column('int')
   quantity: number;

@@ -604,6 +604,7 @@ export class OrderService {
       where: { id: orderId },
       relations: [
         'user',
+        'user.addresses',
         'items',
         'items.productVariant',
         'items.productVariant.product',

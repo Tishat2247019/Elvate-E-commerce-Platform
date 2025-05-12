@@ -6,6 +6,7 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { OrderItem } from './order_item.entity';
@@ -24,7 +25,11 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.orders)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })

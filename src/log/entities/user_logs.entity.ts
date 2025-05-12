@@ -34,7 +34,7 @@ export class UserLog {
   success: boolean;
 
   @Column({ nullable: true })
-  jwt_id: number; // Optional, if you add a `jti` claim in the token
+  jwt_id: number;
 
   @CreateDateColumn()
   timestamp: Date;

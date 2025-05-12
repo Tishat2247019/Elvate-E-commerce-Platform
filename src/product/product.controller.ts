@@ -418,7 +418,6 @@ export class ProductController {
       );
     }
 
-    // 🔗 Get Public URL
     const { data: publicUrlData } = supabase.storage
       .from('product-images')
       .getPublicUrl(fileName);

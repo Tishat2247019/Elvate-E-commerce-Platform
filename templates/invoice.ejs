@@ -3,63 +3,230 @@
 <head>
   <meta charset="utf-8">
   <title>Invoice</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Add your CSS styling here */
-    body { font-family: Arial, sans-serif; }
-    .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; }
-    .invoice-box table { width: 100%; line-height: inherit; text-align: left; }
-    .invoice-box table td { padding: 5px; vertical-align: top; }
-    .invoice-box table tr.heading td { background: #eee; border-bottom: 1px solid #ddd; font-weight: bold; }
-    .invoice-box table tr.item td { border-bottom: 1px solid #eee; }
-    .invoice-box table tr.total td:nth-child(2) { border-top: 2px solid #eee; font-weight: bold; }
+    @page {
+      size: A4;
+      margin: 5mm 5mm 5mm 5mm;
+    }
+    @media print {
+      html, body {
+        width: 210mm;
+        height: 287mm;
+        margin: 0;
+        padding: 0;
+      }
+      .invoice {
+        margin: 0;
+        padding: 10px;
+        width: 100% !important;
+        box-shadow: none;
+      }
+    }
+
+    body {
+      background: #EEE;
+      font-size: 0.9rem;
+    }
+
+    .invoice {
+      width: 970px !important;
+      margin: 20px auto;
+      background: white;
+      padding: 15px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      max-width: 4rem;
+      margin-top: -0.2rem;
+    }
+
+    .mono {
+      font-family: monospace;
+    }
+
+    .table-text {
+      font-size: 0.75rem !important;
+    }
+
+    .product-image {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
   </style>
 </head>
-<body>
-  <div class="invoice-box">
-    <h2>Invoice #<%= order.id %></h2>
-    <p>Date: <%= order.createdAt.toDateString() %></p>
-    <p>Customer: <%= order.user.name %> (<%= order.user.email %>)</p>
+<body class="bg-gray-200">
+  <div class="container invoice">
+    <!-- Header Section -->
+    <div class="invoice-header">
+      <div class="grid grid-cols-12">
+        <div class="col-span-6">
+          <h1 class="text-2xl font-bold">Invoice <span class="text-gray-600 font-normal text-base">With Credit</span></h1>
+          <h4 class="text-gray-600 mt-0 text-xs">
+            NO: <%= order.id %> | Date: <%= order.createdAt.toLocaleDateString() %>
+          </h4>
+        </div>
+        <div class="col-span-6 text-right">
+          <img class="logo inline-block" src="https://scontent.fmel5-1.fna.fbcdn.net/v/t1.0-9/10358691_1595827163984651_6845505980791568353_n.png" />
+          <ul class="mt-1 text-xs">
+            <li><strong>RCJA Australia</strong></li>
+            <li>Lorem Ipsum</li>
+            <li>2 Alliance Lane VIC</li>
+            <li>info@rcja.com</li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-    <h3>Shipping Address</h3>
-<div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 20px;">
-  <p><strong><%= order.shippingAddress.fullName %></strong></p>
-  <p><%= order.shippingAddress.street %></p>
-  <p><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> - <%= order.shippingAddress.postalCode %></p>
-  <p><%= order.shippingAddress.country %></p>
-  <p>Phone: <%= order.shippingAddress.phoneNumber %></p>
-</div>
-    <table cellpadding="0" cellspacing="0">
-      <tr class="heading">
-  <td>Product</td>
-  <td>Image</td>
-  <td>Quantity</td>
-  <td>Unit Price</td>
-  <td>Total</td>
-</tr>
+    <!-- Details Section -->
+    <div class="mt-2">
+      <div class="flex flex-wrap -mx-1">
+        <!-- Company Details -->
+        <div class="w-1/3 px-1">
+          <div class="bg-white rounded border border-black h-full">
+            <div class="p-2 border-b border-black">
+              <div class="font-bold text-xs">Company Details</div>
+            </div>
+            <div class="p-2 text-2xs">
+              <ul class="space-y-0">
+                <li><strong>Name:</strong> RCJA</li>
+                <li><strong>Address:</strong> 1 Unknown Street VIC</li>
+                <li><strong>Phone:</strong> (+61)404123123</li>
+                <li><strong>Email:</strong> admin@rcja.com</li>
+                <li><strong>Contact:</strong> John Smith</li>
+              </ul>
+            </div>
+          </div>
+        </div>
 
-<% order.items.forEach(function(item) { %>
-  <tr class="item">
-    <td><%= item.productVariant.product.title %></td>
-    <td>
-      <% if (item.productVariant.images && item.productVariant.images.length > 0) { %>
-        <img src="<%= item.productVariant.images[0].image_url %>" alt="Product Image" style="width: 80px;" />
-      <% } else { %>
-        No Image
-      <% } %>
-    </td>
-    <td><%= item.quantity %></td>
-    <td>$<%= Number(item.price).toFixed(2) %></td>
-    <td>$<%= (item.quantity * item.price).toFixed(2) %></td>
-  </tr>
-<% }); %>
+        <!-- Customer Details -->
+        <div class="w-1/3 px-1">
+          <div class="bg-white rounded border border-black h-full">
+            <div class="p-2 border-b border-black">
+              <div class="font-bold text-xs">Customer Details</div>
+            </div>
+            <div class="p-2 text-2xs">
+              <ul class="space-y-0">
+                <li><strong>Name:</strong> <%= order.user.addresses[0].fullName %></li>
+                <li><strong>Email:</strong> <%= order.user.email %></li>
+                <li><strong>Phone:</strong> <%= order.shippingAddress.phoneNumber %></li>
+              </ul>
+            </div>
+          </div>
+        </div>
 
-      <tr class="total">
-        <td></td>
-        <td></td>
-        <td>Total:</td>
-        <td><%= order.totalAmount %></td>
-      </tr>
-    </table>
+        <!-- Shipping Address -->
+        <div class="w-1/3 px-1">
+          <div class="bg-white rounded border border-black h-full">
+            <div class="p-2 border-b border-black">
+              <div class="font-bold text-xs">Shipping Address</div>
+            </div>
+            <div class="p-2 text-2xs">
+              <ul class="space-y-0">
+                <li><strong>Street:</strong> <%= order.shippingAddress.street %></li>
+                <li><strong>City:</strong> <%= order.shippingAddress.city %></li>
+                <li><strong>State:</strong> <%= order.shippingAddress.state %></li>
+                <li><strong>Postal Code:</strong> <%= order.shippingAddress.postalCode %></li>
+                <li><strong>Country:</strong> <%= order.shippingAddress.country %></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="mt-1 bg-white rounded border border-black p-0">
+        <table class="w-full border-collapse table-text">
+          <thead>
+            <tr>
+              <th class="p-1 border border-black text-left w-2/12">Item</th>
+              <th class="p-1 border border-black text-left w-5/12">Description</th>
+              <th class="p-1 border border-black text-center w-1/12">Image</th>
+              <th class="p-1 border border-black text-center w-1/12">Unit Price</th>
+              <th class="p-1 border border-black text-center w-1/12">Quantity</th>
+              <th class="p-1 border border-black text-center w-1/12">Discount</th>
+              <th class="p-1 border border-black text-center w-1/12">Tax</th>
+              <th class="p-1 border border-black text-center w-1/12">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% order.items.forEach(function(item) { %>
+              <tr>
+                <td class="p-1 border border-black">
+                  <%= item.productVariant.product.title %>
+                </td>
+                <td class="p-1 border border-black">
+                  <%= item.productVariant.product.description || 'No description available' %>
+                </td>
+                <td class="p-1 border border-black text-center">
+                  <% if (item.productVariant.images.length > 0) { %>
+                    <img src="<%= item.productVariant.images[0].image_url %>" alt="product image" class="product-image mx-auto">
+                  <% } else { %>
+                    -
+                  <% } %>
+                </td>
+                <td class="p-1 border border-black text-right mono">Tk.<%= Number(item.price).toFixed(2) %></td>
+                <td class="p-1 border border-black text-right mono"><%= item.quantity %> unit(s)</td>
+                <td class="p-1 border border-black text-right mono">- Tk.0.00</td>
+                <td class="p-1 border border-black text-right mono whitespace-nowrap">+ Tk.0.00</td>
+                <td class="p-1 border border-black text-right mono font-bold">Tk.<%= (item.quantity * item.price).toFixed(2) %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th class="p-1 border border-black text-left" colspan="3">Total:</th>
+              <th class="p-1 border border-black" colspan="3"></th>
+              <th class="p-1 border border-black text-right">Tk.0.00</th>
+              <th class="p-1 border border-black text-right">Tk.<%= Number(order.totalAmount).toFixed(2) %></th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Footer Boxes -->
+      <div class="flex flex-wrap -mx-1 mt-1" style="min-height: 90px">
+        <!-- Amount Due -->
+        <div class="w-1/3 px-1">
+          <div class="bg-white rounded border border-black h-full flex flex-col">
+            <div class="p-1 border-b border-black">
+              <div class="font-bold text-xs text-center">Amount Due (BDT)</div>
+            </div>
+            <div class="flex-grow flex items-center justify-center p-1">
+              <p class="text-2xl font-bold mono">Tk.<%= Number(order.totalAmount).toFixed(2) %></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="w-1/3 px-1">
+          <div class="bg-white rounded border border-black h-full">
+            <div class="p-1 border-b border-black">
+              <div class="font-bold text-xs">Payment Details</div>
+            </div>
+            <div class="p-1 text-2xs">
+              <p><strong>Account Name:</strong> RJCA</p>
+              <p><strong>BSB:</strong> 111-111</p>
+              <p><strong>Account Number:</strong> 1234101</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="w-1/3 px-1">
+          <div class="bg-white rounded border border-black h-full">
+            <div class="p-1 border-b border-black">
+              <div class="font-bold text-xs">Notes</div>
+            </div>
+            <div class="p-1 text-2xs">
+              Payment is requested within 15 days of receiving this invoice.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

@@ -1,4 +1,10 @@
-import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 
 @Entity()
@@ -27,6 +33,10 @@ export class Address {
   @Column()
   phoneNumber: string;
 
+  @Column()
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.addresses)
+  @JoinColumn({ name: 'userId' })
   user: User;
 }
