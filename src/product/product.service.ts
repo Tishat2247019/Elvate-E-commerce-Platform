@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create_product.dto';
 import { UpdateProductDto } from './dto/update_product.dto';
 import { ProductLog } from '../log/entities/product_logs.entity';
@@ -162,5 +162,13 @@ export class ProductService {
     return {
       message: `Product with ID ${id} successfully deleted`,
     };
+  }
+
+  async countProductsByName(name: string): Promise<number> {
+    return this.productRepository.count({
+      where: {
+        title: ILike(`%${name}%`),
+      },
+    });
   }
 }

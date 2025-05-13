@@ -76,16 +76,15 @@ export class AuthService {
       secret: process.env.JWT_REFRESH_SECRET,
     });
 
-    // Log the successful login attempt
     await this.UserLogRepository.save({
-      user: user, // The logged-in user
+      user: user,
       action: 'login',
-      ip_address: ip, // IP address of the user
-      user_agent: userAgent, // User-Agent of the request
-      success: true, // This is a successful login
-      jwt_id: payload.sub, // Optional, if using `jti`
+      ip_address: ip,
+      user_agent: userAgent,
+      success: true,
+      jwt_id: payload.sub,
     });
-    // Update lastLogin
+
     await this.userRepository.update(user.id, { lastLogin: new Date() });
 
     await this.refreshTokenRepository.save({
@@ -153,14 +152,13 @@ export class AuthService {
       expiresAt,
     });
 
-    // Log logout attempt
     await this.UserLogRepository.save({
       action: 'logout',
-      user: { id: userId }, // Just a reference to the user
-      ip_address: ip, // You can omit this or add it if needed
-      user_agent: userAgent, // Same as above
+      user: { id: userId },
+      ip_address: ip,
+      user_agent: userAgent,
       success: true,
-      jwt_id: undefined, // Store token ID if required
+      jwt_id: undefined,
     });
 
     await this.userRepository.update(userId, { lastLogout: new Date() });

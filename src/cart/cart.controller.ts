@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
 } from '@nestjs/common';
 import { CreateUserCartDto } from './dto/create_user_cart.dto';
 import { UpdateUserCartDto } from './dto/update_user_cart.dto';
@@ -21,8 +22,11 @@ export class CartController {
   }
 
   @Post()
-  async addOrUpdateCartItem(@Body() createUserCartDto: CreateUserCartDto) {
-    return this.cartService.addOrUpdateCartItem(createUserCartDto);
+  async addOrUpdateCartItem(
+    @Req() req,
+    @Body() createUserCartDto: CreateUserCartDto,
+  ) {
+    return this.cartService.addOrUpdateCartItem(req.user, createUserCartDto);
   }
 
   @Put(':id')

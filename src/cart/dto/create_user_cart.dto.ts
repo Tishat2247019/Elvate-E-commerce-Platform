@@ -1,8 +1,8 @@
 import { IsInt, Min } from 'class-validator';
 
 export class CreateUserCartDto {
-  @IsInt()
-  user_id: number;
+  // @IsInt()
+  // user_id: number;
 
   @IsInt()
   variant_id: number;

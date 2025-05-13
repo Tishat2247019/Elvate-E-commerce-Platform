@@ -21,9 +21,11 @@ export class CartService {
   ) {}
 
   async addOrUpdateCartItem(
+    user: any,
     createUserCartDto: CreateUserCartDto,
   ): Promise<UserCart> {
-    const { user_id, variant_id, quantity } = createUserCartDto;
+    const { variant_id, quantity } = createUserCartDto;
+    const user_id = user.userId;
 
     const variant = await this.productVariantRepository.findOne({
       where: { id: variant_id },

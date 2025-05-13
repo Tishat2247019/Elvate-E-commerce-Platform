@@ -10,6 +10,6 @@ import { UserLog } from './entities/user_logs.entity';
   imports: [TypeOrmModule.forFeature([ProductLog, ProductImageLog, UserLog])],
   controllers: [LogController],
   providers: [LogService],
-  exports: [LogService],
+  exports: [TypeOrmModule.forFeature([ProductLog]), LogService],
 })
 export class LogModule {}

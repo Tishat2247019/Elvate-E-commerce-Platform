@@ -24,6 +24,6 @@ import { ProductImageLog } from 'src/log/entities/product_image_logs.entity';
   ],
   controllers: [ProductController],
   providers: [ProductService, ProductVariantService, ProductImageService],
-  exports: [TypeOrmModule.forFeature([ProductVariant])],
+  exports: [TypeOrmModule.forFeature([ProductVariant]), ProductService],
 })
 export class ProductModule {}

@@ -488,7 +488,6 @@ export class OrderService {
     }));
   }
 
-  // 🟢 Get one order by ID
   async getOrderById(id: number): Promise<Order> {
     const order = await this.orderRepo.findOne({
       where: { id },
@@ -498,14 +497,12 @@ export class OrderService {
     return order;
   }
 
-  // 🟡 Update basic order info
   async updateOrder(id: number, dto: UpdateOrderDto): Promise<Order> {
     const order = await this.getOrderById(id);
     Object.assign(order, dto);
     return await this.orderRepo.save(order);
   }
 
-  // 🔴 Cancel order
   async cancelOrder(id: number): Promise<Order> {
     const order = await this.getOrderById(id);
     if (order.status === 'cancelled')
@@ -514,21 +511,18 @@ export class OrderService {
     return await this.orderRepo.save(order);
   }
 
-  // ❌ Delete order
   async deleteOrder(id: number): Promise<void> {
     const result = await this.orderRepo.delete(id);
     if (result.affected === 0)
       throw new NotFoundException('Order not found to delete');
   }
 
-  // ➕ Add order item
   async addOrderItem(orderId: number, dto: OrderItemDto): Promise<OrderItem> {
     const order = await this.getOrderById(orderId);
     const item = this.orderItemRepo.create({ ...dto, order });
     return await this.orderItemRepo.save(item);
   }
 
-  // 🛠 Update order item
   async updateOrderItem(
     id: number,
     dto: UpdateOrderItemDto,
@@ -539,14 +533,12 @@ export class OrderService {
     return await this.orderItemRepo.save(item);
   }
 
-  // ❌ Remove order item
   async removeOrderItem(id: number): Promise<void> {
     const result = await this.orderItemRepo.delete(id);
     if (result.affected === 0)
       throw new NotFoundException('Order item not found');
   }
 
-  // 📦 Update shipping address
   async updateShippingAddress(
     orderId: number,
     dto: UpdateShippingAddressDto,
@@ -562,8 +554,6 @@ export class OrderService {
     await this.orderRepo.save(order);
     return order.shippingAddress;
   }
-
-  // 📝 Add order status history
   async addOrderStatusHistory(
     orderId: number,
     dto: AddOrderStatusHistoryDto,
@@ -576,7 +566,6 @@ export class OrderService {
     });
   }
 
-  // 📃 Get status history
   async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistory[]> {
     await this.getOrderById(orderId); // ensure order exists
     return await this.statusHistoryRepo.find({
@@ -584,7 +573,6 @@ export class OrderService {
     });
   }
 
-  // 👤 Get orders for a specific user
   async getUserOrders(userId: number): Promise<Order[]> {
     return this.orderRepo.find({
       where: { user: { id: userId } },
@@ -592,7 +580,6 @@ export class OrderService {
     });
   }
 
-  // 🔍 Track order
   async trackOrder(orderId: number): Promise<OrderStatusHistory[]> {
     return this.getOrderStatusHistory(orderId);
   }
@@ -627,7 +614,6 @@ export class OrderService {
 
     await browser.close();
 
-    // 📄 Generate filename (optional: folder by user ID)
     const timestamp = Date.now();
     const filename = `user-${order.user.id}/invoice-${order.id}-${timestamp}.pdf`;
 
