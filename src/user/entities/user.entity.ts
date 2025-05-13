@@ -13,6 +13,8 @@ import { UserCart } from 'src/cart/entities/user_cart.entity';
 import { PromoCodeUsage } from 'src/promotion/entities/promocode_usage.entity';
 import { UserRewards } from 'src/promotion/entities/user_rewards.entity';
 import { Order } from 'src/order/entities/order.entity';
+import { Complaint } from 'src/complaint/entities/complaint.entity';
+import { ComplaintResponse } from 'src/complaint/entities/complaint_response.entity';
 @Entity()
 @Unique(['email'])
 export class User {
@@ -53,4 +55,13 @@ export class User {
 
   @OneToMany(() => Order, (orders) => orders.user)
   orders: Order[];
+
+  @OneToMany(() => Complaint, (complaints) => complaints.user)
+  complaints: Complaint[];
+
+  @OneToMany(
+    () => ComplaintResponse,
+    (complaint_response) => complaint_response.admin,
+  )
+  complaint_response: ComplaintResponse[];
 }

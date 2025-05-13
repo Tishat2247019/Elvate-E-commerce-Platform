@@ -9,7 +9,6 @@ import { CategoryModule } from './category/category.module';
 import { CartModule } from './cart/cart.module';
 import { PromotionModule } from './promotion/promotion.module';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 // import path, { join } from 'path';
@@ -18,7 +17,9 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { OrderModule } from './order/order.module';
 import { CommonModule } from './common/common.module';
 import { AddressModule } from './address/address.module';
+import { ComplaintModule } from './complaint/complaint.module';
 import * as path from 'path';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import * as path from 'path';
     OrderModule,
     CommonModule,
     AddressModule,
+    ComplaintModule,
   ],
   controllers: [AppController],
   providers: [AppService],

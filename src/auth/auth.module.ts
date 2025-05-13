@@ -7,11 +7,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { UserModule } from 'src/user/user.module';
 import { RefreshToken } from './entities/refresh_token.entity';
 import { BlacklistToken } from './entities/blackList_token.entity';
 import { JwtWithBlacklistGuard } from './CustomGuard/jwt_blacklist.guard';
 import { UserLog } from 'src/log/entities/user_logs.entity';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [

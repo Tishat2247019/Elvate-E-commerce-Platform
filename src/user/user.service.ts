@@ -33,6 +33,8 @@ export class UserService {
         'promocode_usages',
         'user_rewards',
         'orders',
+        'complaints',
+        'complaints.response',
       ],
     });
   }
