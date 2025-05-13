@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { CustomDateTransformer } from '../dto/date_customized.dto';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class UserCart {
@@ -16,6 +17,10 @@ export class UserCart {
 
   @Column()
   user_id: number;
+
+  @ManyToOne(() => User, (user) => user.cart)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column()
   variant_id: number;

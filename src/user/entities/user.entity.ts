@@ -9,6 +9,10 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Address } from '../../address/entities/address.entity';
+import { UserCart } from 'src/cart/entities/user_cart.entity';
+import { PromoCodeUsage } from 'src/promotion/entities/promocode_usage.entity';
+import { UserRewards } from 'src/promotion/entities/user_rewards.entity';
+import { Order } from 'src/order/entities/order.entity';
 @Entity()
 @Unique(['email'])
 export class User {
@@ -34,8 +38,19 @@ export class User {
 
   @OneToMany(() => UserLog, (log) => log.user)
   logs: UserLog[];
-  orders: any;
 
   @OneToMany(() => Address, (address) => address.user, { cascade: true })
   addresses: Address[];
+
+  @OneToMany(() => UserCart, (cart) => cart.user)
+  cart: UserCart[];
+
+  @OneToMany(() => PromoCodeUsage, (promocode_usages) => promocode_usages.user)
+  promocode_usages: PromoCodeUsage[];
+
+  @OneToMany(() => UserRewards, (user_rewards) => user_rewards.user)
+  user_rewards: UserRewards[];
+
+  @OneToMany(() => Order, (orders) => orders.user)
+  orders: Order[];
 }

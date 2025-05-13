@@ -20,4 +20,20 @@ export class UserService {
   async findByUsername(username: string): Promise<User | null> {
     return this.userRepo.findOne({ where: { email: username } });
   }
+
+  async getUserInfo(user: any) {
+    const user_id = user.userId;
+    // console.log(user);
+    return this.userRepo.findOne({
+      where: { id: user_id },
+      relations: [
+        'cart',
+        'addresses',
+        'logs',
+        'promocode_usages',
+        'user_rewards',
+        'orders',
+      ],
+    });
+  }
 }

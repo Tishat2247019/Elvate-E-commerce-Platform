@@ -5,6 +5,7 @@ import {
   Column,
   CreateDateColumn,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('user_logs')
@@ -12,7 +13,11 @@ export class UserLog {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ nullable: true })
+  userId: number;
+
   @ManyToOne(() => User, (user) => user.logs)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column()

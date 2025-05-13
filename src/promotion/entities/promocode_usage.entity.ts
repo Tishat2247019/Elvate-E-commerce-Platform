@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Coupon } from './coupon.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity('promo_code_usages')
 export class PromoCodeUsage {
@@ -14,6 +15,10 @@ export class PromoCodeUsage {
 
   @Column()
   user_id: number;
+
+  @ManyToOne(() => User, (user) => user.promocode_usages)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column()
   coupon_id: number;

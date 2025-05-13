@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 
 @Entity('user_rewards')
 export class UserRewards {
@@ -7,6 +15,10 @@ export class UserRewards {
 
   @Column()
   user_id: number;
+
+  @ManyToOne(() => User, (user) => user.user_rewards)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column()
   balance: number;
