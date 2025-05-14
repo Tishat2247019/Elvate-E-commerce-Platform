@@ -21,10 +21,10 @@ export class UpdateProductVariantDto {
   @IsDecimal()
   price?: number;
 
-  // @IsOptional()
+  @IsOptional()
   @IsInt()
   @Min(1, { message: 'Amount must be greater than 0' })
-  stock: number;
+  stock?: number;
 
   @IsOptional()
   @IsString()

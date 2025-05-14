@@ -53,7 +53,7 @@ export class ProductService {
 
   async findAllProduct(): Promise<Product[] | any[]> {
     const products = this.productRepository.find({
-      relations: ['variants', 'images', 'category', 'createdBy'],
+      relations: ['variants', 'images', 'category', 'createdBy', 'reviews'],
     });
 
     return (await products).map((product) => ({

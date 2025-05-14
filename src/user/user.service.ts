@@ -35,6 +35,7 @@ export class UserService {
         'orders',
         'complaints',
         'complaints.response',
+        'reviews',
       ],
     });
   }

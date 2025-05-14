@@ -15,6 +15,8 @@ import { UserRewards } from 'src/promotion/entities/user_rewards.entity';
 import { Order } from 'src/order/entities/order.entity';
 import { Complaint } from 'src/complaint/entities/complaint.entity';
 import { ComplaintResponse } from 'src/complaint/entities/complaint_response.entity';
+import { Review } from 'src/rating/entities/review.entity';
+import { Product } from 'src/product/entities/product.entity';
 @Entity()
 @Unique(['email'])
 export class User {
@@ -58,6 +60,9 @@ export class User {
 
   @OneToMany(() => Complaint, (complaints) => complaints.user)
   complaints: Complaint[];
+
+  @OneToMany(() => Review, (reviews) => reviews.user)
+  reviews: Review[];
 
   @OneToMany(
     () => ComplaintResponse,

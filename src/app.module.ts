@@ -20,6 +20,7 @@ import { AddressModule } from './address/address.module';
 import { ComplaintModule } from './complaint/complaint.module';
 import * as path from 'path';
 import { UserModule } from './user/user.module';
+import { RatingModule } from './rating/rating.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { UserModule } from './user/user.module';
     CommonModule,
     AddressModule,
     ComplaintModule,
+    RatingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

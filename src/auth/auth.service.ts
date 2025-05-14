@@ -40,16 +40,16 @@ export class AuthService {
     private readonly passwordResetRepo: Repository<PasswordReset>,
   ) {}
 
-  async register(createUserDto: CreateUserDto) {
-    const userExists = await this.userService.findByEmail(createUserDto.email);
-    if (userExists) {
-      throw new ConflictException(
-        `Cannot register: Email: ${createUserDto.email} already exists`,
-      );
-    }
-    const newUser = await this.userService.create(createUserDto);
-    return { message: 'User registered', user: newUser };
-  }
+  // async register(createUserDto: CreateUserDto) {
+  //   const userExists = await this.userService.findByEmail(createUserDto.email);
+  //   if (userExists) {
+  //     throw new ConflictException(
+  //       `Cannot register: Email: ${createUserDto.email} already exists`,
+  //     );
+  //   }
+  //   const newUser = await this.userService.create(createUserDto);
+  //   return { message: 'User registered', user: newUser };
+  // }
   //   async validateUser(email: string, password: string): Promise<any> {
   //     const user = await this.userRepository.findOne({ where: { email } });
   //     if (user && (await bcrypt.compare(password, user.password))) {
@@ -308,7 +308,7 @@ export class AuthService {
 
     const newUser = this.userRepository.create({
       email: pending.email,
-      password: pending.password, // already hashed
+      password: pending.password,
     });
 
     await this.userRepository.save(newUser);
