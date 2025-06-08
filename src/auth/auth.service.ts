@@ -69,7 +69,12 @@ export class AuthService {
   }
 
   async login(user: any, ip: string, userAgent: string) {
-    const payload = { username: user.email, sub: user.id, role: user.role };
+    const payload = {
+      username: user.email,
+      sub: user.id,
+      role: user.role,
+      email: user.email,
+    };
     const access_token = this.jwtService.sign(payload);
     const refresh_token = this.jwtService.sign(payload, {
       expiresIn: '7d',
@@ -98,6 +103,7 @@ export class AuthService {
       access_token,
       id: decoded.sub,
       role: decoded.role,
+      email: decoded.email,
     };
   }
 

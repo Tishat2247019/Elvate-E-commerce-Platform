@@ -36,7 +36,9 @@ export class RatingService {
   }
 
   async moderateReview(id: number, status: ReviewStatus): Promise<Review> {
-    const review = await this.reviewRepo.findOneBy({ id });
+    const review = await this.reviewRepo.findOne({
+      where: { product_id: id },
+    });
     if (!review) throw new NotFoundException('Review not found');
 
     review.status = status;

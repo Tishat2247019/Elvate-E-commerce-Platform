@@ -17,6 +17,10 @@ export class UserService {
     return this.userRepo.findOne({ where: { email } });
   }
 
+  async showallUser(): Promise<User[] | any[]> {
+    return this.userRepo.find();
+  }
+
   async findByUsername(username: string): Promise<User | null> {
     return this.userRepo.findOne({ where: { email: username } });
   }
@@ -38,5 +42,16 @@ export class UserService {
         'reviews',
       ],
     });
+  }
+
+  async deleteUserById(id: number): Promise<boolean> {
+    const user = await this.userRepo.findOne({ where: { id } });
+
+    if (!user) {
+      return false;
+    }
+
+    await this.userRepo.delete(id);
+    return true;
   }
 }
