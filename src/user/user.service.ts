@@ -43,6 +43,25 @@ export class UserService {
       ],
     });
   }
+  async UserInfoAdmin(id: number): Promise<User | null> {
+    // const user_id = user.userId;
+    // console.log(user);
+    return this.userRepo.findOne({
+      where: { id: id },
+      relations: [
+        'cart',
+        'cart.variant',
+        'addresses',
+        'logs',
+        'promocode_usages',
+        'user_rewards',
+        'orders',
+        'complaints',
+        'complaints.response',
+        'reviews',
+      ],
+    });
+  }
 
   async deleteUserById(id: number): Promise<boolean> {
     const user = await this.userRepo.findOne({ where: { id } });

@@ -483,7 +483,7 @@ export class OrderService {
         quantity: item.quantity,
         price: item.price,
         productVariantId: item.productVariant?.id,
-        productImage: item.productVariant.images[0].image_url,
+        productImage: item.productVariant?.images?.[0]?.image_url ?? null,
       })),
     }));
   }

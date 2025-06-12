@@ -34,6 +34,19 @@ export class UserController {
     return this.userService.showallUser();
   }
 
+  @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
+  async UserInfoAdmin(@Param('id') id: number, @Request() req) {
+    // Optional: You can check if the requesting user has permission to delete this user (e.g. admin or self)
+
+    // Example: Only allow deleting self or admin role (adjust as needed)
+    if (req.user.role !== 'admin') {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    return this.userService.UserInfoAdmin(id);
+  }
+
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   async deleteUser(@Param('id') id: string, @Request() req) {

@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   HttpStatus,
   HttpException,
+  UploadedFiles,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create_product.dto';
@@ -24,7 +25,7 @@ import { ProductImageService } from './product_image.service';
 import { UpdateProductImageDto } from './dto/update_product_image.dto';
 import { CreateProductImageDto } from './dto/create_product_image.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -32,6 +33,7 @@ import axios from 'axios';
 import * as fs from 'fs';
 import { JwtWithBlacklistGuard } from 'src/auth/CustomGuard/jwt_blacklist.guard';
 import { supabase } from 'src/common/supabase.service';
+import { ProductImage } from './entities/product_image.entity';
 // import Replicate from 'replicate';
 // import * as Replicate from 'replicate';
 const Replicate = require('replicate');
@@ -61,6 +63,7 @@ export class ProductController {
 
   @Get()
   async findAllProduct() {
+    // console.log('api hit');
     return this.productService.findAllProduct();
     // return 'check get';
   }
@@ -281,10 +284,11 @@ export class ProductController {
   //   }
   // }
 
-  @Post('image')
+  @Post('images') // plural endpoint
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('files', 10, {
+      // max 10 files for example
       storage: diskStorage({
         destination: './uploads/images',
         filename: (req, file, callback) => {
@@ -296,6 +300,100 @@ export class ProductController {
       }),
     }),
   )
+  async uploadProductImages(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() body: { product_id: number; variant_id: number; is_main: boolean },
+    @Request() req,
+  ) {
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Only admin can upload product images');
+    }
+
+    const createdImages: ProductImage[] = [];
+
+    for (const file of files) {
+      const filePath = file.path;
+      const fileBuffer = fs.readFileSync(filePath);
+      const fileExt = extname(file.originalname);
+      const fileName = `product-${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
+      const mimeType = file.mimetype;
+
+      // Optional: generate base64 for captioning (can be done here or skipped if too slow)
+
+      // let caption = '';
+      // try {
+      //   const base64 = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+      //   const hfResponse = await axios.post(
+      //     'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
+      //     { inputs: base64 },
+      //     {
+      //       headers: {
+      //         Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+      //         'Content-Type': 'application/json',
+      //       },
+      //     },
+      //   );
+      //   if (hfResponse.data && Array.isArray(hfResponse.data)) {
+      //     caption = hfResponse.data[0]?.generated_text || '';
+      //   }
+      // } catch (hfError) {
+      //   console.warn(
+      //     'Captioning failed:',
+      //     hfError.response?.data || hfError.message,
+      //   );
+      // }
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, fileBuffer, {
+          contentType: mimeType,
+          upsert: true,
+        });
+
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+      if (uploadError) {
+        console.error('Upload failed:', uploadError.message);
+        throw new HttpException(
+          'Supabase upload failed',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+      const image_url = publicUrlData?.publicUrl;
+
+      // Save each image record in DB
+      const newImage = await this.productImageService.createProductImage(
+        {
+          ...body,
+          image_url,
+        },
+        req.user,
+      );
+      createdImages.push(newImage);
+    }
+
+    return createdImages;
+  }
+
+  // @Post('image')
+  // @UseGuards(AuthGuard('jwt'))
+  // @UseInterceptors(
+  //   FileInterceptor('file', {
+  //     storage: diskStorage({
+  //       destination: './uploads/images',
+  //       filename: (req, file, callback) => {
+  //         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  //         const ext = extname(file.originalname);
+  //         const fileName = `${uniqueSuffix}${ext}`;
+  //         callback(null, fileName);
+  //       },
+  //     }),
+  //   }),
+  // )
   // async uploadProductImage(
   //   @UploadedFile() file: Express.Multer.File,
   //   @Body() body: { product_id: number; variant_id: number; is_main: boolean },
@@ -358,80 +456,80 @@ export class ProductController {
   //     );
   //   }
   // }
-  async uploadProductImage(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body: { product_id: number; variant_id: number; is_main: boolean },
-    @Request() req,
-  ) {
-    if (req.user.role !== 'admin') {
-      throw new ForbiddenException('Only admin can upload product images');
-    }
+  // async uploadProductImage(
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Body() body: { product_id: number; variant_id: number; is_main: boolean },
+  //   @Request() req,
+  // ) {
+  //   if (req.user.role !== 'admin') {
+  //     throw new ForbiddenException('Only admin can upload product images');
+  //   }
 
-    const filePath = file.path;
-    const fileBuffer = fs.readFileSync(filePath);
-    const fileExt = extname(file.originalname);
-    const fileName = `product-${Date.now()}${fileExt}`;
-    const mimeType = file.mimetype;
+  //   const filePath = file.path;
+  //   const fileBuffer = fs.readFileSync(filePath);
+  //   const fileExt = extname(file.originalname);
+  //   const fileName = `product-${Date.now()}${fileExt}`;
+  //   const mimeType = file.mimetype;
 
-    // Optional: generate base64 for captioning
-    const base64 = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+  //   // Optional: generate base64 for captioning
+  //   const base64 = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
 
-    // Get image caption (optional)
-    let caption = '';
-    try {
-      const hfResponse = await axios.post(
-        'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
-        { inputs: base64 },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      if (hfResponse.data && Array.isArray(hfResponse.data)) {
-        caption = hfResponse.data[0]?.generated_text || '';
-      }
-    } catch (hfError) {
-      console.warn(
-        'Captioning failed:',
-        hfError.response?.data || hfError.message,
-      );
-    }
+  //   // Get image caption (optional)
+  //   let caption = '';
+  //   try {
+  //     const hfResponse = await axios.post(
+  //       'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base',
+  //       { inputs: base64 },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       },
+  //     );
+  //     if (hfResponse.data && Array.isArray(hfResponse.data)) {
+  //       caption = hfResponse.data[0]?.generated_text || '';
+  //     }
+  //   } catch (hfError) {
+  //     console.warn(
+  //       'Captioning failed:',
+  //       hfError.response?.data || hfError.message,
+  //     );
+  //   }
 
-    // 🔥 Upload to Supabase
-    const { error: uploadError } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, fileBuffer, {
-        contentType: mimeType,
-        upsert: true,
-      });
+  //   // 🔥 Upload to Supabase
+  //   const { error: uploadError } = await supabase.storage
+  //     .from('product-images')
+  //     .upload(fileName, fileBuffer, {
+  //       contentType: mimeType,
+  //       upsert: true,
+  //     });
 
-    // Clean up local file
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  //   // Clean up local file
+  //   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
-    if (uploadError) {
-      console.error('Upload failed:', uploadError.message);
-      throw new HttpException(
-        'Supabase upload failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  //   if (uploadError) {
+  //     console.error('Upload failed:', uploadError.message);
+  //     throw new HttpException(
+  //       'Supabase upload failed',
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
 
-    const { data: publicUrlData } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(fileName);
-    const image_url = publicUrlData?.publicUrl;
+  //   const { data: publicUrlData } = supabase.storage
+  //     .from('product-images')
+  //     .getPublicUrl(fileName);
+  //   const image_url = publicUrlData?.publicUrl;
 
-    // ✅ Save image URL in DB
-    return this.productImageService.createProductImage(
-      {
-        ...body,
-        image_url,
-      },
-      req.user,
-    );
-  }
+  //   // ✅ Save image URL in DB
+  //   return this.productImageService.createProductImage(
+  //     {
+  //       ...body,
+  //       image_url,
+  //     },
+  //     req.user,
+  //   );
+  // }
 
   @Get('image/:id')
   async findOneProductImage(@Param('id') id: number) {
