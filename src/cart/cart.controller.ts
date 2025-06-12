@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Req,
+  Request,
 } from '@nestjs/common';
 import { CreateUserCartDto } from './dto/create_user_cart.dto';
 import { UpdateUserCartDto } from './dto/update_user_cart.dto';
@@ -29,6 +30,25 @@ export class CartController {
     return this.cartService.addOrUpdateCartItem(req.user, createUserCartDto);
   }
 
+  @Put('increase')
+  async increaseCartItemQuantity(
+    @Request() req,
+    @Body('productId') productId: number,
+  ) {
+    const userId = req.user.userId; // Extracted from JWT
+    // return userId;
+    return this.cartService.increaseCartItemQuantity(userId, productId);
+  }
+
+  @Put('decrease')
+  async decreaseCartItemQuantity(
+    @Request() req,
+    @Body('productId') productId: number,
+  ) {
+    const userId = req.user.userId;
+    return this.cartService.decreaseCartItemQuantity(userId, productId);
+  }
+
   @Put(':id')
   async updateCartItem(
     @Param('id') id: number,
@@ -40,15 +60,5 @@ export class CartController {
   @Delete(':id')
   async removeCartItem(@Param('id') id: number) {
     return this.cartService.removeCartItem(id);
-  }
-
-  @Put(':id/increase')
-  async increaseCartItemQuantity(@Param('id') id: number) {
-    return this.cartService.increaseCartItemQuantity(id);
-  }
-
-  @Put(':id/decrease')
-  async decreaseCartItemQuantity(@Param('id') id: number) {
-    return this.cartService.decreaseCartItemQuantity(id);
   }
 }

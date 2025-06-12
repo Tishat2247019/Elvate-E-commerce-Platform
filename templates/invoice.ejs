@@ -155,14 +155,14 @@
             <% order.items.forEach(function(item) { %>
               <tr>
                 <td class="p-1 border border-black">
-                  <%= item.productVariant.product.title %>
+                  <%= item.product.title %>
                 </td>
                 <td class="p-1 border border-black">
-                  <%= item.productVariant.product.description || 'No description available' %>
+                  <%= item.product.description || 'No description available' %>
                 </td>
                 <td class="p-1 border border-black text-center">
-                  <% if (item.productVariant.images.length > 0) { %>
-                    <img src="<%= item.productVariant.images[0].image_url %>" alt="product image" class="product-image mx-auto">
+                  <% if (item.product.images.length > 0) { %>
+                    <img src="<%= item.product.images[0].image_url %>" alt="product image" class="product-image mx-auto">
                   <% } else { %>
                     -
                   <% } %>

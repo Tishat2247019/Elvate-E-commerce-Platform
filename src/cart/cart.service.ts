@@ -9,6 +9,7 @@ import { CreateUserCartDto } from './dto/create_user_cart.dto';
 import { UpdateUserCartDto } from './dto/update_user_cart.dto';
 import { ProductVariant } from 'src/product/entities/product_variant.entity';
 import { UserCart } from './entities/user_cart.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class CartService {
@@ -16,28 +17,28 @@ export class CartService {
     @InjectRepository(UserCart)
     private userCartRepository: Repository<UserCart>,
 
-    @InjectRepository(ProductVariant)
-    private productVariantRepository: Repository<ProductVariant>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    // @InjectRepository(ProductVariant)
+    // private productVariantRepository: Repository<ProductVariant>,
   ) {}
 
   async addOrUpdateCartItem(
     user: any,
     createUserCartDto: CreateUserCartDto,
   ): Promise<UserCart> {
-    const { variant_id, quantity } = createUserCartDto;
+    const { product_id, quantity } = createUserCartDto;
     const user_id = user.userId;
 
-    const variant = await this.productVariantRepository.findOne({
-      where: { id: variant_id },
+    const product = await this.productRepository.findOne({
+      where: { id: product_id },
     });
-    if (!variant) {
-      throw new NotFoundException(
-        `Product variant with ID ${variant_id} not found`,
-      );
+    if (!product) {
+      throw new NotFoundException(`Product  with ID ${product_id} not found`);
     }
 
     let cartItem = await this.userCartRepository.findOne({
-      where: { user_id, variant_id },
+      where: { user_id, product_id },
     });
 
     if (cartItem) {
@@ -47,7 +48,7 @@ export class CartService {
 
     cartItem = this.userCartRepository.create({
       user_id,
-      variant_id,
+      product_id,
       quantity,
     });
 
@@ -80,17 +81,17 @@ export class CartService {
   async getCartItems(userId: number): Promise<any> {
     const cartItems = await this.userCartRepository.find({
       where: { user_id: userId },
-      relations: ['variant'],
+      relations: ['product', 'product.images'],
     });
 
     let totalCost = 0;
     const cartDetails = cartItems.map((item) => {
-      const cost = item.variant.price * item.quantity;
+      const cost = item.product.base_price * item.quantity;
       totalCost += cost;
 
       return {
-        product: item.variant.product_id,
-        variant: item.variant,
+        product: item.product,
+        // variant: item.variant,
         quantity: item.quantity,
         totalCost: cost,
       };
@@ -102,12 +103,39 @@ export class CartService {
     };
   }
 
+  // async increaseCartItemQuantity(
+  //   id: number,
+  // ): Promise<{ cartItem: UserCart; message: string }> {
+  //   const cartItem = await this.userCartRepository.findOne({ where: { id } });
+  //   if (!cartItem) {
+  //     throw new NotFoundException(`Cart item with ID ${id} not found`);
+  //   }
+
+  //   const oldQuantity = cartItem.quantity;
+  //   cartItem.quantity += 1;
+  //   const updatedCartItem = await this.userCartRepository.save(cartItem);
+
+  //   return {
+  //     cartItem: updatedCartItem,
+  //     message: `Quantity increased from ${oldQuantity} to ${updatedCartItem.quantity}`,
+  //   };
+  // }
+
   async increaseCartItemQuantity(
-    id: number,
+    userId: number,
+    productId: number,
   ): Promise<{ cartItem: UserCart; message: string }> {
-    const cartItem = await this.userCartRepository.findOne({ where: { id } });
+    const cartItem = await this.userCartRepository.findOne({
+      where: {
+        user: { id: userId },
+        product: { id: productId },
+      },
+    });
+
     if (!cartItem) {
-      throw new NotFoundException(`Cart item with ID ${id} not found`);
+      throw new NotFoundException(
+        `Cart item not found for user ${userId} and product ${productId}`,
+      );
     }
 
     const oldQuantity = cartItem.quantity;
@@ -120,18 +148,51 @@ export class CartService {
     };
   }
 
+  // async decreaseCartItemQuantity(
+  //   id: number,
+  // ): Promise<{ cartItem: UserCart; message: string }> {
+  //   const cartItem = await this.userCartRepository.findOne({ where: { id } });
+  //   if (!cartItem) {
+  //     throw new NotFoundException(`Cart item with ID ${id} not found`);
+  //   }
+
+  //   const oldQuantity = cartItem.quantity;
+
+  //   if (cartItem.quantity > 1) {
+  //     cartItem.quantity -= 1; // Decrement by 1 if quantity > 1
+  //   } else {
+  //     throw new BadRequestException(`Cannot decrease quantity below 1`);
+  //   }
+
+  //   const updatedCartItem = await this.userCartRepository.save(cartItem);
+
+  //   return {
+  //     cartItem: updatedCartItem,
+  //     message: `Quantity decreased from ${oldQuantity} to ${updatedCartItem.quantity}`,
+  //   };
+  // }
+
   async decreaseCartItemQuantity(
-    id: number,
+    userId: number,
+    productId: number,
   ): Promise<{ cartItem: UserCart; message: string }> {
-    const cartItem = await this.userCartRepository.findOne({ where: { id } });
+    const cartItem = await this.userCartRepository.findOne({
+      where: {
+        user: { id: userId },
+        product: { id: productId },
+      },
+    });
+
     if (!cartItem) {
-      throw new NotFoundException(`Cart item with ID ${id} not found`);
+      throw new NotFoundException(
+        `Cart item not found for user ${userId} and product ${productId}`,
+      );
     }
 
     const oldQuantity = cartItem.quantity;
 
     if (cartItem.quantity > 1) {
-      cartItem.quantity -= 1; // Decrement by 1 if quantity > 1
+      cartItem.quantity -= 1;
     } else {
       throw new BadRequestException(`Cannot decrease quantity below 1`);
     }

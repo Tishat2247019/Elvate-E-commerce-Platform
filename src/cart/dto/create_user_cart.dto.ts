@@ -5,7 +5,8 @@ export class CreateUserCartDto {
   // user_id: number;
 
   @IsInt()
-  variant_id: number;
+  product_id: number;
+  // variant_id: number;
 
   @IsInt()
   @Min(1)

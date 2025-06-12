@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { CustomDateTransformer } from '../dto/date_customized.dto';
 import { User } from 'src/user/entities/user.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Entity()
 export class UserCart {
@@ -22,8 +23,8 @@ export class UserCart {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column()
-  variant_id: number;
+  @Column({ nullable: true })
+  product_id: number;
 
   @Column()
   quantity: number;
@@ -34,7 +35,11 @@ export class UserCart {
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at: Date;
 
-  @ManyToOne(() => ProductVariant)
-  @JoinColumn({ name: 'variant_id' })
-  variant: ProductVariant;
+  // @ManyToOne(() => ProductVariant)
+  // @JoinColumn({ name: 'variant_id' })
+  // variant: ProductVariant;
+
+  @ManyToOne(() => Product)
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 }

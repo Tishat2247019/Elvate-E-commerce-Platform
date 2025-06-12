@@ -30,6 +30,7 @@ import puppeteer from 'puppeteer';
 import * as ejs from 'ejs';
 import { supabase } from 'src/common/supabase.service';
 import { Address } from 'src/address/entities/address.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Injectable()
 export class OrderService {
@@ -50,6 +51,8 @@ export class OrderService {
     private userCartRepository: Repository<UserCart>,
     @InjectRepository(ProductVariant)
     private productVariantRepository: Repository<ProductVariant>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(Address)
@@ -284,7 +287,7 @@ export class OrderService {
   private async createOrderFromCart(user: any): Promise<Order> {
     const cartItems = await this.userCartRepository.find({
       where: { user_id: user.userId },
-      relations: ['variant'],
+      relations: ['product'],
     });
 
     if (!cartItems.length) {
@@ -324,19 +327,19 @@ export class OrderService {
     const orderItems: OrderItem[] = [];
 
     for (const cartItem of cartItems) {
-      const variant = cartItem.variant;
-      if (!variant)
-        throw new Error(`Variant not found for cart item ${cartItem.id}`);
+      const product = cartItem.product;
+      if (!product)
+        throw new Error(`Product not found for cart item ${cartItem.id}`);
 
-      const cost = Number(variant.price) * cartItem.quantity;
+      const cost = Number(product.base_price) * cartItem.quantity;
       totalAmount += cost;
 
       orderItems.push(
         this.orderItemRepo.create({
           order: savedOrder,
-          productVariant: variant,
+          product: product,
           quantity: cartItem.quantity,
-          price: variant.price,
+          price: product.base_price,
         }),
       );
     }
@@ -373,11 +376,7 @@ export class OrderService {
   private async sendInvoiceEmail(user: any, order: Order, invoiceUrl: string) {
     const items = await this.orderItemRepo.find({
       where: { order: { id: order.id } },
-      relations: [
-        'productVariant',
-        'productVariant.product',
-        'productVariant.images',
-      ],
+      relations: ['product', 'product.variants', 'product.images'],
     });
 
     const shipping = order.shippingAddress;
@@ -424,9 +423,9 @@ export class OrderService {
   `;
 
     for (const item of orderItems) {
-      const variant = item.productVariant;
-      const productName = variant?.product?.title;
-      const productImage = variant?.images?.[0]?.image_url;
+      // const variant = item.productVariant;
+      const productName = item.product?.title;
+      const productImage = item.product?.images?.[0]?.image_url;
       const unitPrice = Number(item.price).toFixed(2);
       const totalPrice = (Number(item.price) * item.quantity).toFixed(2);
 
@@ -469,9 +468,9 @@ export class OrderService {
       relations: [
         'user',
         'items',
-        'items.productVariant',
+        'items.product',
         'shippingAddress',
-        'items.productVariant.images',
+        'items.product.images',
       ],
     });
 
@@ -482,8 +481,8 @@ export class OrderService {
         id: item.id,
         quantity: item.quantity,
         price: item.price,
-        productVariantId: item.productVariant?.id,
-        productImage: item.productVariant?.images?.[0]?.image_url ?? null,
+        productId: item.product?.id,
+        productImage: item.product?.images?.[0]?.image_url ?? null,
       })),
     }));
   }
@@ -593,9 +592,9 @@ export class OrderService {
         'user',
         'user.addresses',
         'items',
-        'items.productVariant',
-        'items.productVariant.product',
-        'items.productVariant.images',
+        'items.product',
+        // 'items..product',
+        'items.product.images',
       ],
     });
 

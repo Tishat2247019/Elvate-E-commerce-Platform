@@ -10,6 +10,7 @@ import { UserCart } from 'src/cart/entities/user_cart.entity';
 import { ProductVariant } from 'src/product/entities/product_variant.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
+import { Product } from 'src/product/entities/product.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Address } from 'src/address/entities/address.entity';
       ProductVariant,
       User,
       Address,
+      Product,
     ]),
   ],
   controllers: [OrderController],

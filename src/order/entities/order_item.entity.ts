@@ -11,8 +11,8 @@ export class OrderItem {
   @ManyToOne(() => Order, (order) => order.items)
   order: Order;
 
-  @ManyToOne(() => ProductVariant)
-  productVariant: ProductVariant;
+  @ManyToOne(() => Product)
+  product: Product;
 
   @Column('int')
   quantity: number;
