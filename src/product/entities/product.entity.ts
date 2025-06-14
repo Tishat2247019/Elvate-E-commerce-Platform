@@ -14,6 +14,7 @@ import { Category } from 'src/category/entities/category.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Expose } from 'class-transformer';
 import { Review } from 'src/rating/entities/review.entity';
+import { productReview } from 'src/rating/entities/productReview.entity';
 
 @Entity()
 export class Product {
@@ -72,5 +73,5 @@ export class Product {
   images: ProductImage[];
 
   @OneToMany(() => Review, (reviews) => reviews.product)
-  reviews: Review[];
+  reviews: productReview[];
 }

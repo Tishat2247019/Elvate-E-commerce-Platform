@@ -8,12 +8,16 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { RatingService } from './rating.service';
 import { CreateReviewDto } from './dto/create_review.dto';
 import { Review, ReviewStatus } from './entities/review.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { CreatereviewDto } from './dto/Create_Revieww.dto';
 
 @Controller('rating')
 export class RatingController {
@@ -21,10 +25,24 @@ export class RatingController {
 
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(AuthGuard('jwt'))
+  // @Post()
+  // async createReview(@Body() dto: CreateReviewDto, @Req() req) {
+  //   const userId = req.user.userId; // extracted from JWT
+  //   return this.ratingService.createReview(userId, dto);
+  // }
+
   @Post()
-  async createReview(@Body() dto: CreateReviewDto, @Req() req) {
-    const userId = req.user.userId; // extracted from JWT
-    return this.ratingService.createReview(userId, dto);
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'images', maxCount: 5 }]), // Optional images
+  )
+  async createReview(
+    @UploadedFiles()
+    files: { images?: Express.Multer.File[] },
+    @Body() dto,
+    @Req() req,
+  ) {
+    const userId = req.user.userId; // JWT
+    return this.ratingService.createReview(userId, dto, files?.images);
   }
 
   // 🔐 Admin-only route to approve/reject reviews
