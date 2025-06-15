@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -50,9 +51,9 @@ export class RatingService {
       where: { user: { id: userId }, product: { id: dto.productId } },
     });
 
-    if (existingReview) {
-      throw new BadRequestException('You have already reviewed this product.');
-    }
+    // if (existingReview) {
+    //   throw new BadRequestException('You have already reviewed this product.');
+    // }
 
     let uploadedUrls: string[] = [];
     if (images && images.length > 0) {
@@ -101,28 +102,35 @@ export class RatingService {
     return publicData?.publicUrl;
   }
 
-  async moderateReview(id: number, status: ReviewStatus): Promise<Review> {
-    const review = await this.reviewRepo.findOne({
-      where: { product_id: id },
+  async moderateReview(
+    id: number,
+    status: ReviewStatus,
+  ): Promise<productReview> {
+    const review = await this.productReviewRepo.findOne({
+      where: { id: id },
     });
     if (!review) throw new NotFoundException('Review not found');
 
     review.status = status;
-    return this.reviewRepo.save(review);
+    return this.productReviewRepo.save(review);
   }
 
   async getAverageRating(productId: number): Promise<number> {
-    const result = await this.reviewRepo
+    const result = await this.productReviewRepo
       .createQueryBuilder('review')
       .select('AVG(review.rating)', 'avg')
       .where('review.product_id = :productId', { productId })
       .andWhere('review.status = :status', { status: ReviewStatus.APPROVED })
       .getRawOne();
 
+    // if (!result) {
+    //   throw new ForbiddenException('product not found');
+    // }
+
     return parseFloat(result.avg || 0);
   }
 
-  async getAllReviews(): Promise<Review[]> {
-    return await this.reviewRepo.find();
+  async getAllReviews(): Promise<productReview[]> {
+    return await this.productReviewRepo.find();
   }
 }

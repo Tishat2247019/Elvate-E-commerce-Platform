@@ -10,6 +10,7 @@ import { ProductImageService } from './product_image.service';
 import { ProductLog } from '../log/entities/product_logs.entity';
 import { LogModule } from 'src/log/log.module';
 import { ProductImageLog } from 'src/log/entities/product_image_logs.entity';
+import { productReview } from 'src/rating/entities/productReview.entity';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ProductImageLog } from 'src/log/entities/product_image_logs.entity';
       ProductImage,
       ProductVariant,
       ProductImageLog,
+      productReview,
     ]),
     LogModule,
   ],

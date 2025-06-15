@@ -18,6 +18,7 @@ import { Review, ReviewStatus } from './entities/review.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { CreatereviewDto } from './dto/Create_Revieww.dto';
+import { productReview } from './entities/productReview.entity';
 
 @Controller('rating')
 export class RatingController {
@@ -62,7 +63,7 @@ export class RatingController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('get-all-reviews')
-  async getAllReviews(@Req() req): Promise<Review[]> {
+  async getAllReviews(@Req() req): Promise<productReview[]> {
     if (req.user.role !== 'admin') {
       throw new ForbiddenException('Unathorized endpiont');
     }

@@ -75,7 +75,7 @@ export class ProductService {
   //     excludeExtraneousValues: true,
   //   });
   // }
-  async findOneProduct(id: number): Promise<Product> {
+  async findOneProduct(id: number): Promise<Product | any> {
     const product = await this.productRepository.findOne({
       relations: [
         'variants',
@@ -91,7 +91,19 @@ export class ProductService {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    return product;
+    const new_product = {
+      ...product,
+      reviews: product.reviews.map((review) => ({
+        ...review,
+        user: {
+          id: review.user?.id,
+          email: review.user?.email,
+          role: review.user?.role,
+        },
+      })),
+    };
+
+    return new_product;
   }
 
   // async updateProduct(

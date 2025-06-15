@@ -72,6 +72,6 @@ export class Product {
   @OneToMany(() => ProductImage, (image) => image.product)
   images: ProductImage[];
 
-  @OneToMany(() => Review, (reviews) => reviews.product)
+  @OneToMany(() => productReview, (reviews) => reviews.product)
   reviews: productReview[];
 }
