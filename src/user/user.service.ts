@@ -3,10 +3,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { CartService } from 'src/cart/cart.service';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private userRepo: Repository<User>,
+    private readonly cartService: CartService,
+  ) {}
 
   async create(user: Partial<User>): Promise<User> {
     const newUser = this.userRepo.create(user);
@@ -25,10 +29,29 @@ export class UserService {
     return this.userRepo.findOne({ where: { email: username } });
   }
 
+  // async getUserInfo(user: any) {
+  //   const user_id = user.userId;
+  //   // console.log(user);
+  //   return this.userRepo.findOne({
+  //     where: { id: user_id },
+  //     relations: [
+  //       'cart',
+  //       'addresses',
+  //       'logs',
+  //       'promocode_usages',
+  //       'user_rewards',
+  //       'orders',
+  //       'complaints',
+  //       'complaints.response',
+  //       'reviews',
+  //     ],
+  //   });
+  // }
+
   async getUserInfo(user: any) {
     const user_id = user.userId;
-    // console.log(user);
-    return this.userRepo.findOne({
+
+    const userData = await this.userRepo.findOne({
       where: { id: user_id },
       relations: [
         'cart',
@@ -42,7 +65,15 @@ export class UserService {
         'reviews',
       ],
     });
+
+    const cart = await this.cartService.getCartItems(user_id);
+
+    return {
+      ...userData,
+      cart, // now userInfo includes cart details and totalCost
+    };
   }
+
   async UserInfoAdmin(id: number): Promise<User | null> {
     // const user_id = user.userId;
     // console.log(user);
