@@ -74,16 +74,17 @@ export class UserService {
     };
   }
 
-  async UserInfoAdmin(id: number): Promise<User | null> {
+  async UserInfoAdmin(id: number): Promise<any> {
     // const user_id = user.userId;
     // console.log(user);
-    return this.userRepo.findOne({
+    // console.time('user');
+    const userDate = await this.userRepo.findOne({
       where: { id: id },
       relations: [
-        'cart',
-        'cart.variant',
+        // 'cart',
+        // // 'cart.variant',
         'addresses',
-        'logs',
+        // 'logs',
         'promocode_usages',
         'user_rewards',
         'orders',
@@ -92,6 +93,13 @@ export class UserService {
         'reviews',
       ],
     });
+    // console.timeEnd('user');
+    const cart = await this.cartService.getCartItems(id);
+
+    return {
+      ...userDate,
+      cart, // now userInfo includes cart details and totalCost
+    };
   }
 
   async deleteUserById(id: number): Promise<boolean> {
