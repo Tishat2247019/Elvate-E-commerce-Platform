@@ -84,7 +84,7 @@ export class UserService {
         // 'cart',
         // // 'cart.variant',
         'addresses',
-        // 'logs',
+        'logs',
         'promocode_usages',
         'user_rewards',
         'orders',
