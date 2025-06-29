@@ -31,6 +31,8 @@ import * as ejs from 'ejs';
 import { supabase } from 'src/common/supabase.service';
 import { Address } from 'src/address/entities/address.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationsGateway } from 'src/notification/notificatoin.gateway';
 
 @Injectable()
 export class OrderService {
@@ -57,6 +59,8 @@ export class OrderService {
     private userRepository: Repository<User>,
     @InjectRepository(Address)
     private addressRepository: Repository<Address>,
+    private readonly notificationService: NotificationService,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   // 🟢 Create new order
@@ -270,6 +274,15 @@ export class OrderService {
   async createOrder(user: any): Promise<Order> {
     const order = await this.createOrderFromCart(user);
 
+    if (order) {
+      const note = await this.notificationService.create({
+        title: 'New Order Placed',
+        message: `Order #${order.id} has been created`,
+        type: 'order',
+        data: { orderId: order.id },
+      });
+      this.notificationsGateway.notifyAllAdmins(note);
+    }
     const { buffer, filename } = await this.generateInvoicePdf(order.id);
 
     const invoiceUrl = await this.uploadInvoiceToSupabase(buffer, filename);

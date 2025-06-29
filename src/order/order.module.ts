@@ -11,6 +11,9 @@ import { ProductVariant } from 'src/product/entities/product_variant.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Address } from 'src/address/entities/address.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationsGateway } from 'src/notification/notificatoin.gateway';
 
 @Module({
   imports: [
@@ -24,9 +27,10 @@ import { Product } from 'src/product/entities/product.entity';
       User,
       Address,
       Product,
+      Notification,
     ]),
   ],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, NotificationService, NotificationsGateway],
 })
 export class OrderModule {}

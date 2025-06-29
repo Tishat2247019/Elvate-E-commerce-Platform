@@ -12,6 +12,8 @@ import { CreateReviewDto } from './dto/create_review.dto';
 import { productReview } from './entities/productReview.entity';
 import { CreatereviewDto } from './dto/Create_Revieww.dto';
 import { supabase } from 'src/common/supabase.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationsGateway } from 'src/notification/notificatoin.gateway';
 
 @Injectable()
 export class RatingService {
@@ -20,6 +22,8 @@ export class RatingService {
     private reviewRepo: Repository<Review>,
     @InjectRepository(productReview)
     private productReviewRepo: Repository<productReview>,
+    private readonly notificationService: NotificationService,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   // async createReview(userId: number, dto: CreateReviewDto): Promise<Review> {
@@ -77,6 +81,16 @@ export class RatingService {
       imageUrls: uploadedUrls,
       status: ReviewStatus.PENDING,
     });
+
+    if (review) {
+      const note = await this.notificationService.create({
+        title: 'New Review posted',
+        message: dto.title || 'No title provided',
+        type: 'Review',
+        data: { reviewId: review.id },
+      });
+      this.notificationsGateway.notifyAllAdmins(note);
+    }
 
     return this.productReviewRepo.save(review);
   }

@@ -21,6 +21,7 @@ import { ComplaintModule } from './complaint/complaint.module';
 import * as path from 'path';
 import { UserModule } from './user/user.module';
 import { RatingModule } from './rating/rating.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { RatingModule } from './rating/rating.module';
     AddressModule,
     ComplaintModule,
     RatingModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
