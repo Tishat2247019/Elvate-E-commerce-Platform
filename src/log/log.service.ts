@@ -2,9 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { ProductLog } from './entities/product_logs.entity';
 import * as puppeteer from 'puppeteer';
 import { UserLog } from './entities/user_logs.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class LogService {
+  constructor(
+    @InjectRepository(UserLog)
+    private userLogRepository: Repository<UserLog>,
+    @InjectRepository(ProductLog)
+    private readonly productLogRepo: Repository<ProductLog>,
+  ) {}
   //   async renderLogsHtml(logs: ProductLog[], user: any): Promise<string> {
   //     const rows = logs
   //       .map(
@@ -309,5 +317,15 @@ export class LogService {
     const pdfUint8Array = await page.pdf({ format: 'A4' });
     await browser.close();
     return Buffer.from(pdfUint8Array);
+  }
+
+  async getAllUserLogs(): Promise<UserLog[]> {
+    return this.userLogRepository.find({ relations: ['user'] });
+  }
+
+  async getAllProductLogs(): Promise<ProductLog[]> {
+    return this.productLogRepo.find({
+      order: { timestamp: 'DESC' },
+    });
   }
 }

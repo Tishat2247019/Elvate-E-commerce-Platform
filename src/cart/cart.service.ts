@@ -204,4 +204,28 @@ export class CartService {
       message: `Quantity decreased from ${oldQuantity} to ${updatedCartItem.quantity}`,
     };
   }
+
+  async removeCartItemByUser(
+    userId: number,
+    productId: number,
+  ): Promise<{ message: string }> {
+    const cartItem = await this.userCartRepository.findOne({
+      where: {
+        user: { id: userId },
+        product: { id: productId },
+      },
+    });
+
+    if (!cartItem) {
+      throw new NotFoundException(
+        `Cart item not found for user ${userId} and product ${productId}`,
+      );
+    }
+
+    await this.userCartRepository.remove(cartItem);
+
+    return {
+      message: `Cart item for product ${productId} removed successfully.`,
+    };
+  }
 }

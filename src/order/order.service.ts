@@ -349,6 +349,8 @@ export class OrderService {
     savedOrder.totalAmount = totalAmount;
     const updatedOrder = await this.orderRepo.save(savedOrder);
 
+    await this.userCartRepository.delete({ user_id: user.userId });
+
     return updatedOrder;
   }
 

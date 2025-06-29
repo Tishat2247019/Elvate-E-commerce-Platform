@@ -21,6 +21,7 @@ import { UserLog } from './entities/user_logs.entity';
 export class LogController {
   constructor(
     private readonly logService: LogService,
+
     @InjectRepository(ProductLog)
     private readonly productLogRepository: Repository<ProductLog>,
     @InjectRepository(ProductImageLog)
@@ -28,6 +29,28 @@ export class LogController {
     @InjectRepository(UserLog)
     private readonly userLogRepository: Repository<UserLog>,
   ) {}
+
+  @Get('user-logs')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserLogs(@Request() req) {
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Only admin can view logs');
+    }
+
+    return this.logService.getAllUserLogs();
+  }
+
+  @Get('product-logs')
+  @UseGuards(AuthGuard('jwt'))
+  async getProductLogs(@Request() req) {
+    const user = req.user;
+
+    if (user.role !== 'admin') {
+      throw new ForbiddenException('Only admins can view product logs');
+    }
+
+    return this.logService.getAllProductLogs();
+  }
 
   @Get('download/user-logs')
   @UseGuards(AuthGuard('jwt'))

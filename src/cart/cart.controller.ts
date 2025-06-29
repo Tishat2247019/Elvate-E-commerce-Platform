@@ -61,4 +61,13 @@ export class CartController {
   async removeCartItem(@Param('id') id: number) {
     return this.cartService.removeCartItem(id);
   }
+
+  @Delete('product/:productId')
+  async removeCartItemForUser(
+    @Param('productId') productId: number,
+    @Req() req,
+  ) {
+    const userId = req.user.userId; // JWT must attach this in payload
+    return this.cartService.removeCartItemByUser(userId, productId);
+  }
 }

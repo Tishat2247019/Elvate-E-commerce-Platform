@@ -22,6 +22,7 @@ export class AddressController {
   @Post()
   async createAddress(@Request() req, @Body() dto: CreateAddressDto) {
     return this.addressService.createAddress(req.user.userId, dto);
+    // return 'hello world';
   }
 
   @Get()

@@ -42,7 +42,7 @@ export class CategoryController {
     return this.categoryService.getCategoryById(id);
   }
 
-  @UseGuards(JwtWithBlacklistGuard)
+  // @UseGuards(JwtWithBlacklistGuard)
   @Put(':id')
   async updateCategory(
     @Request() req,
